@@ -2,6 +2,9 @@
 sparkasse pdfs -> graph
 
 this was before  I knew you could export csv directly from the website.. :D
+so now it's also
+
+sparkasse csv -> graph
 
 ## Features
 - very bad and specific pdf to csv parser
