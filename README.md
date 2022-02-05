@@ -7,4 +7,5 @@ this was before  I knew you could export csv directly from the website.. :D
 - very bad and specific pdf to csv parser
 - nice looking graphs, able to see history for specific expenses as well as statistical figures of merit and histograms
 
-## Usage
+## Sample graphs
+![sample1](sample_1.png)
