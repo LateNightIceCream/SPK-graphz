@@ -1,15 +1,10 @@
 # SPK-graphz
 sparkasse pdfs -> graph
 
-<<<<<<< HEAD
 this was before  I knew you could export csv directly from the website.. :D
 so now it's also
-bins
+
 sparkasse csv -> graph
-=======
-this was before  I knew you could export csv directly from the website.. :d
-Everything is still a little rough
->>>>>>> d96b01c (update)
 
 ## Features
 - very bad and specific pdf to csv parser
