@@ -2,7 +2,6 @@
 # TODO: feature: input multiple csv files and overlay them
 # TODO: feature: input multiple keywords and overlay them
 library(ggplot2)
-library(ggforce) # for coloring geom_line based on sign
 library(patchwork)
 library(argparser)
 
@@ -66,17 +65,20 @@ right_axis_factor <- max(dat1$cum_amount) / max(dat1$amount)
 
 geom_amount_timeplot <- function (data = dat1, color = col2, color2 = col3) {
   avg_amount <- mean(data$amount)
+  #y <- data$cum_amount
+  #data <- dplyr::mutate(data, line_color = y > 0 | dplyr::lead(y, default = dplyr::first(y)) < 0)
   list(
     geom_line(data = data, color='gray'),
-    #geom_point(data = data, color=color, aes(color = amount > 0)),
+    #geom_point(data = data, color=color),
     geom_point(data = data, aes(color = amount > 0)),
     #geom_point(data = data, aes(x = date, y=amount, colour = amount)),
     #scale_colour_gradient(low = color2, high = color),
-    geom_line(data = data, aes(x=date, y=cum_amount/right_axis_factor), color=color),
+    geom_line(data = data, aes(x=date, y=cum_amount/right_axis_factor), color="orange" ),
     geom_hline(yintercept=avg_amount, linetype='dashed', color=color),
     #geom_text(label=data$amount),
     # just for testing, date[4] is not very secure ;D
     annotate('text', x = data$date[4], y = avg_amount, color = textcol, label=sprintf('%.2f', avg_amount))
+
     )
 }
 
@@ -88,7 +90,8 @@ p <- ggplot(data = dat1, aes(x=date, y=amount)) +
     subtitle = paste('from', start_date, 'to', end_date)
   ) +
   theme(plot.title=element_text(color='black'),
-          plot.subtitle=element_text(color='gray')) +
+        plot.subtitle=element_text(color='gray'),
+        legend.position="none") +
   scale_y_continuous(
     # Features of the first axis
     name = 'amount / EUR',
