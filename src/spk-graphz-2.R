@@ -2,13 +2,15 @@
 # TODO: feature: input multiple csv files and overlay them
 # TODO: feature: input multiple keywords and overlay them
 library(ggplot2)
+library(ggforce) # for coloring geom_line based on sign
 library(patchwork)
 library(argparser)
 
 parser <- arg_parser('A program to turn Sparkasse .csv files into nice graphs')
 parser <- add_argument(parser, "input", help="input file")
-parser <- add_argument(parser, 'keywords', help='keyword(s) to filter for. Case sensitive. Use \'|\' to OR multiple keywords. Examples: \'LIDL\' or \'LIDL|ALDI\'')
+parser <- add_argument(parser, '--keywords', default = 'all', help='keyword(s) to filter for. Case sensitive. Use \'|\' to OR multiple keywords. Examples: \'LIDL\' or \'LIDL|ALDI\'')
 parser <- add_argument(parser, "--output", help="output (pdf) file")
+parser <- add_argument(parser, "--type", default='x', help="show positive (+), negative (-) or both (~) amounts")
 
 args <- parse_args(parser)
 
@@ -17,15 +19,23 @@ height  <- 0.618 * width
 dat     <- read.csv(args$input, sep=';')
 
 keyword <- args$keywords
+keyword
 outname <- if (is.na(args$output) || args$output == '')  paste(args$keywords, '.pdf', sep='') else args$output
+outname
 
-format_data <- function (data, keyword) {
+format_data <- function (data, keyword, type = '-') {
     # only take rows where descr contains keyword
     # TODO: toLower()
-    data      <- dplyr::filter(data, grepl(keyword, descr))
+    data <- if (keyword == 'all') data else dplyr::filter(data, grepl(keyword, descr))
     # pls no german decimal ','
     data$amount <- as.numeric(sub(',', '.', data$amount, fixed = TRUE))
-    data$amount <- abs(data$amount)
+    i = if (type == '+') { 1 }  else if (type == '-') { -1 } # else...
+
+    if (type != 'x') {
+      data <- dplyr::filter(data, i * amount > 0)
+      data$amount <- abs(data$amount)
+    }
+
     # get R date objects
     data$date <- as.Date(data$date, '%d.%m.%y')
     # just for convenience
@@ -40,7 +50,7 @@ format_data <- function (data, keyword) {
 
 # make format like legacy date,descr,amount
 dat1 <- data.frame(date = dat$Buchungstag, descr=dat$Beguenstigter.Zahlungspflichtiger, amount = dat$Betrag)
-dat1 <- format_data(dat1, keyword)
+dat1 <- format_data(dat1, keyword, type = args$type)
 
 start_date <- dat1$date[1]
 end_date   <- tail(dat1$date, n=1)
@@ -58,7 +68,8 @@ geom_amount_timeplot <- function (data = dat1, color = col2, color2 = col3) {
   avg_amount <- mean(data$amount)
   list(
     geom_line(data = data, color='gray'),
-    geom_point(data = data, color=color),
+    #geom_point(data = data, color=color, aes(color = amount > 0)),
+    geom_point(data = data, aes(color = amount > 0)),
     #geom_point(data = data, aes(x = date, y=amount, colour = amount)),
     #scale_colour_gradient(low = color2, high = color),
     geom_line(data = data, aes(x=date, y=cum_amount/right_axis_factor), color=color),
@@ -99,4 +110,4 @@ h <- ggplot(data = dat1, aes(x=amount)) +
   geom_histogram()
 
 pdf(outname, width, height)
-h
+p
